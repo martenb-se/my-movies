@@ -26,8 +26,8 @@ In order to simply try this project you only need the following:
 ### Clone
 Clone the repository and enter it
 ```shell
-git clone git@github.com:martenb-se/my-movies-client.git
-cd my-movies-client
+git clone git@github.com:martenb-se/my-movies.git
+cd my-movies
 ```
 
 ### Preparation
