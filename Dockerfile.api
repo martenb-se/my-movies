@@ -1,0 +1,34 @@
+FROM openjdk:17-oracle
+
+# Create App Directory in Container
+RUN mkdir -p /opt/my-movies-api/.mvn
+RUN mkdir -p /opt/my-movies-api/src/main/java
+RUN mkdir -p /opt/my-movies-api/src/main/resources
+RUN mkdir -p /opt/my-movies-api/src/test
+
+# Copy Back-End Source Files
+COPY external/my-movies-api/.mvn /opt/my-movies-api/.mvn
+COPY external/my-movies-api/src/main/java /opt/my-movies-api/src/main/java
+COPY external/my-movies-api/src/main/resources /opt/my-movies-api/src/main/resources
+COPY external/my-movies-api/src/test /opt/my-movies-api/src/test
+COPY external/my-movies-api/mvnw /opt/my-movies-api/
+COPY external/my-movies-api/pom.xml /opt/my-movies-api/
+
+# Set environment during build process when unit tests will run
+ENV API_PORT=8080
+ENV SPRING_APPLICATION_NAME=my-movies
+ENV LOGGING_LEVEL=OFF
+
+# Install & Build Back-End
+WORKDIR /opt/my-movies-api
+RUN ./mvnw package
+
+# Copy Build to Root
+RUN cp ./target/*.jar /app.jar
+
+# Cleanup
+WORKDIR /
+RUN rm -rf /opt/my-movies-api
+
+# Run
+ENTRYPOINT ["java", "-jar", "/app.jar"]

@@ -1,0 +1,9 @@
+[submodule "external/my-movies-db"]
+	path = external/my-movies-db
+	url = git@github.com:martenb-se/my-movies-db.git
+[submodule "external/my-movies-api"]
+	path = external/my-movies-api
+	url = git@github.com:martenb-se/my-movies-api.git
+[submodule "external/my-movies-client"]
+	path = external/my-movies-client
+	url = git@github.com:martenb-se/my-movies-client.git

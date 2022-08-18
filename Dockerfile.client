@@ -1,0 +1,41 @@
+# Alpine
+FROM node:18-alpine as build-client
+
+# Arguments
+ARG APP_PORT
+
+# Get cURL for Health-Check
+RUN apk --no-cache add curl
+
+# Create App Directory in Container
+RUN mkdir -p /opt/my-movies-client
+RUN mkdir -p /opt/my-movies-client/public
+RUN mkdir -p /opt/my-movies-client/src
+
+# Copy Front-End Source Files
+COPY .env /opt/my-movies-client
+COPY external/my-movies-client/index.html /opt/my-movies-client
+COPY external/my-movies-client/package.json /opt/my-movies-client
+COPY external/my-movies-client/vite.config.js /opt/my-movies-client/
+COPY external/my-movies-client/public /opt/my-movies-client/public
+COPY external/my-movies-client/src /opt/my-movies-client/src
+
+# Install Front-End
+WORKDIR /opt/my-movies-client
+RUN npm install
+
+# Change Standard API URL
+RUN sed -i -E "s/STANDARD_API_URL = \"[^\"]+\"/STANDARD_API_URL = \"http:\/\/localhost:${APP_PORT}\/api\/movies\"/" ./src/api/myMoviesApi.js
+
+# Build Front-End
+RUN npm run build
+
+# Clean Up after Install
+RUN rm -r node_modules src public .env index.html package.json vite.config.js
+
+# Copy Client Build Files to NGINX
+FROM nginx:stable-alpine
+COPY --from=build-client /opt/my-movies-client/dist /usr/share/nginx/html
+
+# Copy NGINX Config
+COPY assets/nginx.default.conf /etc/nginx/conf.d/default.conf

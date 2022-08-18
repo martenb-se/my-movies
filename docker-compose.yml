@@ -1,0 +1,59 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:latest
+    container_name: my-movies-db
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - APP_DB_USER=${APP_DB_USER}
+      - APP_DB_PASS=${APP_DB_PASS}
+      - APP_DB_NAME=${APP_DB_NAME}
+    volumes:
+      - ./external/my-movies-db/src/init:/docker-entrypoint-initdb.d/
+      - ./external/my-movies-db/src/design:/design/
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: springio/my-movies-api
+    container_name: my-movies-api
+    depends_on:
+      - db
+    environment:
+      - API_PORT=8080
+      - SPRING_APPLICATION_NAME=my-movies
+      - LOGGING_LEVEL=${LOGGING_LEVEL}
+      - SPRING_DATASOURCE_URL_HOST=db
+      - SPRING_DATASOURCE_URL_PORT=5432
+      - SPRING_DATASOURCE_URL_DB=${APP_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${APP_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${APP_DB_PASS}
+    healthcheck:
+      test: "curl --fail --silent api:8080/actuator/health | grep UP || exit 1"
+      interval: 45s
+      timeout: 10s
+      retries: 10
+  client:
+    build:
+      context: .
+      args:
+        APP_PORT: ${APP_PORT}
+      dockerfile: Dockerfile.client
+    image: vuejs/my-movies-client
+    container_name: my-movies-client
+    depends_on:
+      - db
+      - api
+    healthcheck:
+      test: "curl --fail --silent client:80 | grep \"My Movies\" || exit 1"
+      interval: 45s
+      timeout: 10s
+      retries: 10
+    ports:
+      - "${APP_PORT}:80"
