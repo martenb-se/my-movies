@@ -24,10 +24,12 @@ In order to simply try this project you only need the following:
 
 ## Install
 ### Clone
-Clone the repository and enter it
+Clone the repository, enter it and update the necessary submodules
 ```shell
 git clone git@github.com:martenb-se/my-movies.git
 cd my-movies
+git submodule init
+git submodule update
 ```
 
 ### Preparation
